@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Temple Run Mini Clone</title>
+<style>
+body{
+    margin:0;
+    overflow:hidden;
+    background:#111;
+    font-family:Arial;
+}
+
+#game{
+    width:100vw;
+    height:100vh;
+    position:relative;
+    background:linear-gradient(#4fc3f7,#81c784);
+}
+
+#player{
+    width:50px;
+    height:50px;
+    background:gold;
+    position:absolute;
+    bottom:50px;
+    left:50%;
+    transform:translateX(-50%);
+    border-radius:10px;
+}
+
+.obstacle{
+    width:60px;
+    height:60px;
+    background:red;
+    position:absolute;
+}
+
+#score{
+    position:absolute;
+    top:20px;
+    left:20px;
+    color:white;
+    font-size:30px;
+    font-weight:bold;
+}
+
+#gameover{
+    position:absolute;
+    top:50%;
+    left:50%;
+    transform:translate(-50%,-50%);
+    color:white;
+    font-size:40px;
+    display:none;
+}
+</style>
+</head>
+<body>
+
+<div id="game">
+    <div id="score">0</div>
+    <div id="player"></div>
+    <div id="gameover">
+        Game Over<br>
+        Press R to Restart
+    </div>
+</div>
+
+<script>
+const player = document.getElementById("player");
+const game = document.getElementById("game");
+const scoreText = document.getElementById("score");
+const gameOverText = document.getElementById("gameover");
+
+let lanes = [25, 50, 75];
+let lane = 1;
+let score = 0;
+let speed = 6;
+let running = true;
+
+player.style.left = lanes[lane] + "%";
+
+function movePlayer() {
+    player.style.left = lanes[lane] + "%";
+}
+
+document.addEventListener("keydown", e => {
+
+    if(!running && e.key.toLowerCase()==="r"){
+        location.reload();
+    }
+
+    if(e.key==="ArrowLeft" && lane>0){
+        lane--;
+        movePlayer();
+    }
+
+    if(e.key==="ArrowRight" && lane<2){
+        lane++;
+        movePlayer();
+    }
+});
+
+function createObstacle(){
+
+    if(!running) return;
+
+    let obs = document.createElement("div");
+    obs.classList.add("obstacle");
+
+    let obsLane = Math.floor(Math.random()*3);
+
+    obs.style.left =
+      `calc(${lanes[obsLane]}% - 30px)`;
+
+    obs.style.top = "-60px";
+
+    game.appendChild(obs);
+
+    let pos = -60;
+
+    let interval = setInterval(()=>{
+
+        if(!running){
+            clearInterval(interval);
+            return;
+        }
+
+        pos += speed;
+        obs.style.top = pos + "px";
+
+        let playerRect =
+          player.getBoundingClientRect();
+
+        let obsRect =
+          obs.getBoundingClientRect();
+
+        if(
+            playerRect.left < obsRect.right &&
+            playerRect.right > obsRect.left &&
+            playerRect.top < obsRect.bottom &&
+            playerRect.bottom > obsRect.top
+        ){
+            running = false;
+            gameOverText.style.display="block";
+        }
+
+        if(pos > window.innerHeight){
+            score++;
+            scoreText.textContent = score;
+
+            if(score % 20 === 0){
+                speed += 1;
+            }
+
+            obs.remove();
+            clearInterval(interval);
+        }
+
+    },16);
+}
+
+setInterval(()=>{
+    if(running){
+        createObstacle();
+    }
+},1000);
+</script>
+
+</body>
+</html>
